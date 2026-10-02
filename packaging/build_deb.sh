@@ -35,5 +35,6 @@ Description: Scan, test and stream RTSP/ONVIF cameras and webcams (ffmpeg only)
  Run "cm2" for the interactive menu.
 CONTROL
 
-fakeroot dpkg-deb --build "$PKG" "$OUT"
+# xz, not the zstd default: older dpkg (Debian 11 and earlier) cannot read zstd.
+fakeroot dpkg-deb -Zxz --build "$PKG" "$OUT"
 echo "Built $OUT"
