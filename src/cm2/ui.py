@@ -43,3 +43,22 @@ def streams_table(rows: list[dict]) -> Table:
             f"[{style}]{row['status']}[/{style}]", row["url"],
         )
     return table
+
+
+def help_screen(commands: list[tuple[str, str]], examples: list[tuple[str, str]], data_dir: str) -> None:
+    console.print("[bold]cm2[/bold] - scan, test and stream RTSP/ONVIF cameras and webcams (ffmpeg only)\n")
+    table = Table(title="Commands", title_justify="left", show_header=False, box=None, padding=(0, 2))
+    for name, text in commands:
+        table.add_row(f"[bold cyan]cm2 {name}[/bold cyan]", text)
+    console.print(table)
+    console.print()
+    table = Table(title="Examples", title_justify="left", show_header=False, box=None, padding=(0, 2))
+    for cmd, text in examples:
+        table.add_row(f"[green]{cmd}[/green]", text)
+    console.print(table)
+    console.print(
+        "\nStream outputs: [bold]M3U8[/bold] (HLS, choose resolution + quality) "
+        "or [bold]any http[/bold] (MJPEG, opens in a browser)."
+    )
+    console.print(f"Saved cameras and stream state: [dim]{data_dir}[/dim]")
+    console.print("Add [bold]-h[/bold] or [bold]--help[/bold] to any command for its options.")

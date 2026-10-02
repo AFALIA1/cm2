@@ -15,6 +15,8 @@ PROTOCOL_CHOICES = {
     "any http": ("mjpeg", "HTTP"),
 }
 
+ORIGINAL_QUALITY = "Original (no re-encode, least CPU)"
+
 MANUAL_ENTRY = "+ Enter camera manually (RTSP/ONVIF)"
 RESCAN = "(rescan)"
 BACK = "<- Back"
@@ -248,13 +250,34 @@ def scan_flow() -> None:
                 step = data["_before_test"]
                 continue
             data["protocol_label"] = protocol_label
+            step = "resolution" if PROTOCOL_CHOICES[protocol_label][0] == "hls" else "port"
+            continue
+
+        if step == "resolution":
+            picked = _select("M3U8 resolution (scale):", list(manager.HLS_RESOLUTIONS.keys()))
+            if picked is None:
+                step = "protocol"
+                continue
+            data["height"] = manager.HLS_RESOLUTIONS[picked]
+            step = "quality"
+            continue
+
+        if step == "quality":
+            choices = list(manager.HLS_QUALITY_CRF.keys())
+            if data["height"] is None:
+                choices = [ORIGINAL_QUALITY] + choices  # copy is only possible at the original size
+            picked = _select("M3U8 quality:", choices)
+            if picked is None:
+                step = "resolution"
+                continue
+            data["crf"] = None if picked == ORIGINAL_QUALITY else manager.HLS_QUALITY_CRF[picked]
             step = "port"
             continue
 
         if step == "port":
             port_text = _text("Port to run this stream on:")
             if port_text is None:
-                step = "protocol"
+                step = "quality" if PROTOCOL_CHOICES[data["protocol_label"]][0] == "hls" else "protocol"
                 continue
             try:
                 port = int(port_text)
@@ -271,14 +294,17 @@ def scan_flow() -> None:
         if step == "launch":
             protocol, display_protocol = PROTOCOL_CHOICES[data["protocol_label"]]
             try:
-                stream = manager.start_stream(data["camera"], protocol, display_protocol, data["port"])
+                stream = manager.start_stream(
+                    data["camera"], protocol, display_protocol, data["port"],
+                    height=data.get("height"), crf=data.get("crf"),
+                )
             except Exception as exc:
                 ui.error(f"Failed to start stream: {exc}")
                 step = "port"
                 continue
-            extra = ""
+            extra = f" [{stream.hls_quality}]" if stream.hls_quality else ""
             if stream.hls_time and stream.hls_time != manager.DEFAULT_HLS_TIME:
-                extra = f" (segment length is {stream.hls_time}s, matched to this camera's own keyframe interval)"
+                extra += f" (segment length is {stream.hls_time}s, matched to this camera's own keyframe interval)"
             ui.done(f"stream '{stream.id}' is live at {stream.url}{extra}")
             step = "done"
             continue
@@ -299,7 +325,8 @@ def status_flow() -> None:
     else:
         rows = [
             {
-                "id": s.id, "camera": s.camera_name, "protocol": s.display_protocol,
+                "id": s.id, "camera": s.camera_name,
+                "protocol": f"{s.display_protocol} ({s.hls_quality})" if s.hls_quality else s.display_protocol,
                 "port": s.port, "status": manager.health(s), "url": s.url,
             }
             for s in result.alive
@@ -337,7 +364,7 @@ def main_menu() -> None:
     while True:
         choice = questionary.select(
             "cm2",
-            choices=["Scan", "Status", "Stop a stream", "Exit"],
+            choices=["Scan", "Status", "Stop a stream", "Help", "Exit"],
         ).ask()
         if choice in (None, "Exit"):
             return
@@ -347,3 +374,6 @@ def main_menu() -> None:
             status_flow()
         elif choice == "Stop a stream":
             stop_flow()
+        elif choice == "Help":
+            from . import cli  # cli imports menu, so import here
+            cli.main.main(["help"], prog_name="cm2", standalone_mode=False)

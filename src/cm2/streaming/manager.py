@@ -17,6 +17,13 @@ from . import ffprobe_helpers, ports
 
 DEFAULT_HLS_TIME = 2.0
 
+# M3U8 output presets offered in the menu. None = keep the camera's own resolution.
+HLS_RESOLUTIONS: dict[str, Optional[int]] = {
+    "Original": None, "1080p": 1080, "720p": 720, "480p": 480, "360p": 360,
+}
+# libx264 CRF: lower = better picture and more bandwidth.
+HLS_QUALITY_CRF: dict[str, int] = {"High": 20, "Medium": 23, "Low": 28}
+
 
 def load_streams() -> list[RunningStream]:
     return [RunningStream.from_dict(d) for d in storage.load_json_list(storage.STREAMS_FILE)]
@@ -138,7 +145,19 @@ def _worker_cmd() -> list[str]:
     return [sys.executable, "-m", "cm2.streaming.worker"]
 
 
-def start_stream(camera: Camera, protocol: str, display_protocol: str, port: int) -> RunningStream:
+def _quality_label(height: Optional[int], crf: Optional[int]) -> str:
+    res = f"{height}p" if height else "original size"
+    names = {v: k for k, v in HLS_QUALITY_CRF.items()}
+    quality = names.get(crf, f"CRF {crf}") if crf is not None else "original quality"
+    return f"{res}, {quality}"
+
+
+def start_stream(
+    camera: Camera, protocol: str, display_protocol: str, port: int,
+    height: Optional[int] = None, crf: Optional[int] = None,
+) -> RunningStream:
+    """height/crf (HLS only): None for both keeps the auto behaviour (stream copy
+    when the camera already sends H.264); setting either forces a libx264 re-encode."""
     if not ports.is_tcp_port_free(port):
         raise RuntimeError(f"port {port} is already in use")
 
@@ -155,9 +174,19 @@ def start_stream(camera: Camera, protocol: str, display_protocol: str, port: int
     ]
 
     hls_time: Optional[float] = None
+    hls_quality: Optional[str] = None
     if protocol == "hls":
-        video_codec, hls_time = _decide_hls_encoding(source_kind, source)
+        if height is None and crf is None:
+            video_codec, hls_time = _decide_hls_encoding(source_kind, source)
+        else:
+            video_codec, hls_time = "libx264", DEFAULT_HLS_TIME
+            if crf is None:
+                crf = HLS_QUALITY_CRF["Medium"]
+            cmd += ["--crf", str(crf)]
+            if height is not None:
+                cmd += ["--height", str(height)]
         cmd += ["--video-codec", video_codec, "--hls-time", str(hls_time)]
+        hls_quality = _quality_label(height, crf)
 
     proc = subprocess.Popen(cmd, start_new_session=True)
     ps = psutil.Process(proc.pid)
@@ -169,7 +198,7 @@ def start_stream(camera: Camera, protocol: str, display_protocol: str, port: int
         id=stream_id, camera_id=camera.id, camera_name=camera.name,
         protocol=protocol, display_protocol=display_protocol, port=port,
         pid=proc.pid, create_time=ps.create_time(), workdir=str(workdir), url=url,
-        hls_time=hls_time,
+        hls_time=hls_time, hls_quality=hls_quality,
     )
 
     with storage.locked():

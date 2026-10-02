@@ -36,18 +36,23 @@ def _install_shutdown_handler(server, ffmpeg_proc: subprocess.Popen) -> None:
     signal.signal(signal.SIGINT, shutdown)
 
 
-def run_hls(args: argparse.Namespace) -> None:
-    workdir = Path(args.workdir)
-    workdir.mkdir(parents=True, exist_ok=True)
+def _hls_cmd(args: argparse.Namespace, workdir: Path) -> list[str]:
     input_args = _build_input_args(args.source_kind, args.source)
 
     if args.video_codec == "copy":
         codec_args = ["-c:v", "copy"]
     else:
-        gop = max(1, round(args.hls_time * 25))  # assume ~25fps if re-encoding from raw capture
-        codec_args = ["-c:v", "libx264", "-preset", "veryfast", "-g", str(gop)]
+        # Keyframe on every segment boundary, whatever the source fps is.
+        codec_args = [
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", str(args.crf),
+            "-pix_fmt", "yuv420p",
+            "-force_key_frames", f"expr:gte(t,n_forced*{args.hls_time})",
+        ]
+        if args.height:
+            # Downscale only; -2 keeps the aspect ratio with an even width.
+            codec_args += ["-vf", f"scale=-2:'min({args.height},ih)'"]
 
-    cmd = [
+    return [
         "ffmpeg", "-nostdin", "-loglevel", "warning",
         *input_args,
         "-fflags", "+genpts", "-avoid_negative_ts", "make_zero",
@@ -58,6 +63,12 @@ def run_hls(args: argparse.Namespace) -> None:
         "-hls_segment_filename", str(workdir / "seg_%05d.ts"),
         str(workdir / "index.m3u8"),
     ]
+
+
+def run_hls(args: argparse.Namespace) -> None:
+    workdir = Path(args.workdir)
+    workdir.mkdir(parents=True, exist_ok=True)
+    cmd = _hls_cmd(args, workdir)
     log_file = open(workdir / "ffmpeg.log", "a")
     ffmpeg_proc = subprocess.Popen(cmd, stdout=log_file, stderr=subprocess.STDOUT)
 
@@ -110,6 +121,8 @@ def main() -> None:
     parser.add_argument("--workdir", required=True)
     parser.add_argument("--video-codec", choices=["copy", "libx264"], default="libx264")
     parser.add_argument("--hls-time", type=float, default=2.0)
+    parser.add_argument("--height", type=int, default=None, help="downscale to this height (libx264 only)")
+    parser.add_argument("--crf", type=int, default=23, help="libx264 quality: lower = better")
     args = parser.parse_args()
 
     if args.protocol == "hls":

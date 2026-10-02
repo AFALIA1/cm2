@@ -22,11 +22,11 @@ need WebRTC, use `camerasmanager` instead.
 
 | OS | Installer |
 |---|---|
-| Windows 10/11 | [cm2-0.1.0-windows-x64-setup.exe](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-windows-x64-setup.exe) |
-| macOS (Apple Silicon M1–M4) | [cm2-0.1.0-macos-arm64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-macos-arm64.pkg) |
-| macOS (Intel) | [cm2-0.1.0-macos-x86_64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-macos-x86_64.pkg) |
-| Linux PC (Ubuntu/Debian) | [cm2_0.1.0_amd64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.0_amd64.deb) |
-| Linux ARM (Jetson, Raspberry Pi 64-bit) | [cm2_0.1.0_arm64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.0_arm64.deb) |
+| Windows 10/11 | [cm2-0.1.1-windows-x64-setup.exe](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-windows-x64-setup.exe) |
+| macOS (Apple Silicon M1–M4) | [cm2-0.1.1-macos-arm64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-macos-arm64.pkg) |
+| macOS (Intel) | [cm2-0.1.1-macos-x86_64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-macos-x86_64.pkg) |
+| Linux PC (Ubuntu/Debian) | [cm2_0.1.1_amd64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.1_amd64.deb) |
+| Linux ARM (Jetson, Raspberry Pi 64-bit) | [cm2_0.1.1_arm64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.1_arm64.deb) |
 
 All versions: [Releases](https://github.com/AFALIA1/cm2/releases)
 
@@ -72,7 +72,12 @@ cm2            # interactive menu: Scan / Status / Stop a stream / Exit
 cm2 scan       # scan for cameras, configure, test, and start a stream
 cm2 status     # show currently running streams
 cm2 stop [id]  # stop a running stream
+cm2 help       # list every command with examples (cm2 help <command> for details)
 ```
+
+When you choose **M3U8**, cm2 also asks for a **resolution** (Original / 1080p / 720p /
+480p / 360p, downscale only) and a **quality** (High / Medium / Low). "Original" for both
+keeps the camera's own H.264 untouched (no re-encode, least CPU).
 
 The scan flow (brand presets, ONVIF auto-detect, connection testing, back-navigation on
 every prompt) matches `camerasmanager`'s — only the streaming backend differs.

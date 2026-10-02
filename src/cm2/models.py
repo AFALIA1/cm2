@@ -46,6 +46,7 @@ class RunningStream:
     url: str
     started_at: float = field(default_factory=time.time)
     hls_time: Optional[float] = None  # actual segment length used (hls only)
+    hls_quality: Optional[str] = None  # e.g. "720p, Medium" (hls only)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

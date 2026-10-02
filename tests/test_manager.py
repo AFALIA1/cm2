@@ -98,3 +98,41 @@ def test_reconcile_drops_dead_stream_and_saves(isolated_home, monkeypatch):
     assert result.alive == []
     assert [s.id for s in result.dead] == ["dead1"]
     assert manager.load_streams() == []
+
+
+def _capture_worker_cmd(monkeypatch, tmp_path, **kwargs):
+    from cm2 import storage
+    from cm2.models import Camera
+
+    captured = {}
+
+    class FakePopen:
+        pid = 4242
+
+        def __init__(self, cmd, **_kw):
+            captured["cmd"] = cmd
+
+    monkeypatch.setattr(storage, "STREAM_WORKDIRS_DIR", tmp_path)
+    monkeypatch.setattr(manager.ports, "is_tcp_port_free", lambda port: True)
+    monkeypatch.setattr(manager.ports, "get_local_ip", lambda: "127.0.0.1")
+    monkeypatch.setattr(manager.subprocess, "Popen", FakePopen)
+    monkeypatch.setattr(manager.psutil, "Process", lambda pid: FakeProcess(1.0))
+    monkeypatch.setattr(manager, "_decide_hls_encoding", lambda kind, src: ("copy", 2.0))
+    camera = Camera(id="c1", kind="rtsp", name="Cam", address="1.2.3.4", rtsp_url="rtsp://x")
+    stream = manager.start_stream(camera, "hls", "M3U8", 18000, **kwargs)
+    return captured["cmd"], stream
+
+
+def test_start_stream_hls_default_keeps_auto_copy(isolated_home, monkeypatch, tmp_path):
+    cmd, stream = _capture_worker_cmd(monkeypatch, tmp_path)
+    assert cmd[cmd.index("--video-codec") + 1] == "copy"
+    assert "--height" not in cmd and "--crf" not in cmd
+    assert stream.hls_quality == "original size, original quality"
+
+
+def test_start_stream_hls_scale_forces_reencode(isolated_home, monkeypatch, tmp_path):
+    cmd, stream = _capture_worker_cmd(monkeypatch, tmp_path, height=720, crf=28)
+    assert cmd[cmd.index("--video-codec") + 1] == "libx264"
+    assert cmd[cmd.index("--height") + 1] == "720"
+    assert cmd[cmd.index("--crf") + 1] == "28"
+    assert stream.hls_quality == "720p, Low"
