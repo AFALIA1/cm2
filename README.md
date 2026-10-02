@@ -18,6 +18,18 @@ WebRTC connection in any version (WHIP, upstream since ffmpeg 7.0, only lets ffm
 to a WebRTC server; the server/playback side, WHEP, isn't in upstream ffmpeg at all). If you
 need WebRTC, use `camerasmanager` instead.
 
+## Download
+
+| OS | Installer |
+|---|---|
+| Windows 10/11 | [cm2-0.1.0-windows-x64-setup.exe](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-windows-x64-setup.exe) |
+| macOS (Apple Silicon M1–M4) | [cm2-0.1.0-macos-arm64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-macos-arm64.pkg) |
+| macOS (Intel) | [cm2-0.1.0-macos-x86_64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.0-macos-x86_64.pkg) |
+| Linux PC (Ubuntu/Debian) | [cm2_0.1.0_amd64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.0_amd64.deb) |
+| Linux ARM (Jetson, Raspberry Pi 64-bit) | [cm2_0.1.0_arm64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.0_arm64.deb) |
+
+All versions: [Releases](https://github.com/AFALIA1/cm2/releases)
+
 ## Install (one file per OS)
 
 Each installer is a single file containing the whole app: Python and every dependency are
