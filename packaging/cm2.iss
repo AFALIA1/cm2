@@ -22,10 +22,16 @@ OutputBaseFilename=cm2-{#AppVersion}-windows-x64-setup
 Compression=lzma2
 SolidCompression=yes
 UninstallDisplayName=cm2
+CloseApplications=yes
 
 [Tasks]
 Name: addtopath; Description: "Add cm2 to the PATH environment variable automatically (recommended)"; \
     GroupDescription: "Environment variable:"
+
+; Upgrading over an older version: clear the old bundle first so libraries the new
+; version dropped don't linger in _internal (same AppId = same folder, in place).
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\_internal"
 
 [Files]
 Source: "..\dist\cm2\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion

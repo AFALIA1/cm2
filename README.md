@@ -22,11 +22,11 @@ need WebRTC, use `camerasmanager` instead.
 
 | OS | Installer |
 |---|---|
-| Windows 10/11 | [cm2-0.1.1-windows-x64-setup.exe](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-windows-x64-setup.exe) |
-| macOS (Apple Silicon M1–M4) | [cm2-0.1.1-macos-arm64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-macos-arm64.pkg) |
-| macOS (Intel) | [cm2-0.1.1-macos-x86_64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.1-macos-x86_64.pkg) |
-| Linux PC (Ubuntu/Debian) | [cm2_0.1.1_amd64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.1_amd64.deb) |
-| Linux ARM (Jetson, Raspberry Pi 64-bit) | [cm2_0.1.1_arm64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.1_arm64.deb) |
+| Windows 10/11 | [cm2-0.1.2-windows-x64-setup.exe](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.2-windows-x64-setup.exe) |
+| macOS (Apple Silicon M1–M4) | [cm2-0.1.2-macos-arm64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.2-macos-arm64.pkg) |
+| macOS (Intel) | [cm2-0.1.2-macos-x86_64.pkg](https://github.com/AFALIA1/cm2/releases/latest/download/cm2-0.1.2-macos-x86_64.pkg) |
+| Linux PC (Ubuntu/Debian) | [cm2_0.1.2_amd64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.2_amd64.deb) |
+| Linux ARM (Jetson, Raspberry Pi 64-bit) | [cm2_0.1.2_arm64.deb](https://github.com/AFALIA1/cm2/releases/latest/download/cm2_0.1.2_arm64.deb) |
 
 All versions: [Releases](https://github.com/AFALIA1/cm2/releases)
 
@@ -42,6 +42,10 @@ or leave PATH for you to set up manually.
 | Windows 10/11 (x64) | `cm2-<ver>-windows-x64-setup.exe` | Double-click. Leave "Add cm2 to the PATH…" ticked, or untick it to set PATH yourself. |
 | Linux (Debian/Ubuntu/Jetson) | `cm2_<ver>_<amd64\|arm64>.deb` | `sudo apt install ./cm2_<ver>_<arch>.deb`, then answer the PATH question. |
 | macOS (Apple Silicon / Intel) | `cm2-<ver>-macos-<arm64\|x86_64>.pkg` | Double-click. For manual PATH: **Customize** → untick "Add cm2 to PATH automatically". |
+
+**Upgrading:** just run the newer installer over the old one; it replaces the old
+version in place, keeps your PATH choice, and keeps your saved cameras (`~/.cm2`). Stop
+running streams first (`cm2 stop`).
 
 The installers are unsigned. On Windows, SmartScreen may show "More info → Run anyway". On
 macOS, right-click the .pkg → Open, or allow it under System Settings → Privacy & Security.

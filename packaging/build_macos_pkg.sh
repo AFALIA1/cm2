@@ -35,6 +35,7 @@ cp -a "$APP" "$WORK/app-root/usr/local/cm2"
 ln -s /usr/local/cm2/cm2 "$WORK/path-root/usr/local/bin/cm2"
 
 pkgbuild --root "$WORK/app-root" --install-location / \
+    --scripts "$ROOT/packaging/macos/scripts" \
     --identifier com.cm2.cli.app --version "$VERSION" "$WORK/pkgs/cm2-app.pkg"
 pkgbuild --root "$WORK/path-root" --install-location / \
     --identifier com.cm2.cli.path --version "$VERSION" "$WORK/pkgs/cm2-path.pkg"

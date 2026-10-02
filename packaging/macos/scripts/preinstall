@@ -1,0 +1,7 @@
+#!/bin/sh
+# Upgrading over an older version: remove the old app folder first, since a .pkg
+# only adds/overwrites files and would leave libraries the new version dropped.
+# $3 is the target volume ("/" normally). User data in ~/.cm2 is not touched.
+TARGET="${3:-/}"
+rm -rf "${TARGET%/}/usr/local/cm2"
+exit 0
