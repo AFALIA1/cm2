@@ -1,0 +1,8 @@
+Template: cm2/add-to-path
+Type: boolean
+Default: true
+Description: Add cm2 to PATH automatically?
+ Yes (recommended): creates /usr/bin/cm2 so you can type "cm2" in any terminal.
+ .
+ No: your PATH is left alone. Run /opt/cm2/cm2 directly, or add it yourself,
+ e.g.  echo 'export PATH="/opt/cm2:$PATH"' >> ~/.bashrc

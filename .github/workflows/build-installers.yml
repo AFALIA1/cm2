@@ -1,0 +1,66 @@
+# Builds the one-file installers on each OS and attaches them to the run
+# (Actions tab -> run -> Artifacts). Pushing a tag like v0.1.0 also publishes
+# them as a GitHub Release.
+name: build-installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04,       kind: deb }   # amd64
+          - { os: ubuntu-22.04-arm,   kind: deb }   # arm64 (Jetson, Raspberry Pi 64-bit)
+          - { os: macos-latest,       kind: mac }   # Apple Silicon
+          - { os: macos-15-intel,     kind: mac }   # Intel (x86_64)
+          - { os: windows-latest,     kind: win }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install cm2 + PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install . pyinstaller
+      - name: Build standalone app
+        run: python packaging/build_app.py
+
+      - if: matrix.kind == 'deb'
+        run: packaging/build_deb.sh
+      - if: matrix.kind == 'mac'
+        run: packaging/build_macos_pkg.sh
+      - if: matrix.kind == 'win'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y }
+          packaging/build_windows.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cm2-${{ matrix.os }}
+          path: |
+            dist/*.deb
+            dist/*.pkg
+            dist/*.exe
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*

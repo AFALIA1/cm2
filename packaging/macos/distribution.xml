@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- productbuild layout for the macOS installer. "Customize" on the Installation Type
+     step lets the user untick the PATH link and set PATH up themselves. -->
+<installer-gui-script minSpecVersion="2">
+    <title>cm2</title>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <conclusion file="conclusion.html" mime-type="text/html"/>
+    <options customize="allow" require-scripts="false" hostArchitectures="__ARCH__"/>
+    <domains enable_localSystem="true"/>
+    <choices-outline>
+        <line choice="app"/>
+        <line choice="path"/>
+    </choices-outline>
+    <choice id="app" title="cm2 app" description="The cm2 app with bundled ffmpeg and ffprobe, in /usr/local/cm2." enabled="false" start_selected="true">
+        <pkg-ref id="com.cm2.cli.app"/>
+    </choice>
+    <choice id="path" title="Add cm2 to PATH automatically" description="Creates /usr/local/bin/cm2 so you can type &quot;cm2&quot; in any Terminal. Untick to set PATH up yourself." start_selected="true">
+        <pkg-ref id="com.cm2.cli.path"/>
+    </choice>
+    <pkg-ref id="com.cm2.cli.app" version="__VERSION__">cm2-app.pkg</pkg-ref>
+    <pkg-ref id="com.cm2.cli.path" version="__VERSION__">cm2-path.pkg</pkg-ref>
+</installer-gui-script>

@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+. /usr/share/debconf/confmodule
+
+if [ "$1" = configure ]; then
+    db_get cm2/add-to-path
+    if [ "$RET" = true ]; then
+        ln -sf /opt/cm2/cm2 /usr/bin/cm2
+    else
+        if [ -L /usr/bin/cm2 ] && [ "$(readlink /usr/bin/cm2)" = /opt/cm2/cm2 ]; then
+            rm -f /usr/bin/cm2
+        fi
+        # stdout belongs to debconf here, so talk on stderr.
+        echo "cm2 was NOT added to PATH. Run /opt/cm2/cm2, or add /opt/cm2 to your PATH." >&2
+    fi
+fi
+db_stop
